@@ -1,4 +1,3 @@
-// Project-specific JS (complete project action + toggle participate)
 (function(){
   document.addEventListener("DOMContentLoaded", function() {
     const completeBtn = document.getElementById("complete-project-btn");

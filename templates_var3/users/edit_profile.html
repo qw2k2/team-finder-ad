@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+<link rel="stylesheet" href="{% static 'css/skills.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -52,6 +53,29 @@
             <div class="form-field">
                 {{ form.github_url.label_tag }}
                 {{ form.github_url }}
+            </div>
+        </div>
+
+        <div class="profile-skills skills-block">
+            <h3>Навыки</h3>
+            <div class="skills-container"
+                 data-search-url="/users/skills/"
+                 data-add-url="/users/{{ user.id }}/skills/add/"
+                 data-remove-url="/users/{{ user.id }}/skills/__skill_id__/remove/"
+                 data-empty-text="Навыки не указаны">
+                {% for skill in user.skills.all %}
+                    <span class="skill-chip" data-id="{{ skill.id }}">
+                        {{ skill.name }}
+                        <button type="button" class="remove-skill-btn" aria-label="Удалить" title="Удалить">×</button>
+                    </span>
+                {% empty %}
+                    <span class="skill-empty">Навыки не указаны</span>
+                {% endfor %}
+                <button type="button" class="add-skill-btn">+ Добавить навык</button>
+            </div>
+            <div class="skill-input-wrapper hidden">
+                <input type="text" class="skill-input" placeholder="Введите навык..." autocomplete="off"/>
+                <ul class="skill-suggestions hidden"></ul>
             </div>
         </div>
 

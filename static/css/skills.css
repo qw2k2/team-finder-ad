@@ -5,6 +5,18 @@
     align-items: center;
 }
 
+.profile-skills {
+  background:white;
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+.profile-skills h3 {
+  margin:0;
+}
+
 .skill-chip {
   display:inline-flex; align-items:center; gap:6px;
   padding:6px 10px; border:1px solid #ccc; border-radius:16px;
@@ -25,7 +37,7 @@
 .skill-input-wrapper { position:relative; margin-top:8px; }
 .skill-input-wrapper.hidden { display:none; }
 
-#skill-input {
+.skill-input {
   padding:6px 12px; border:1px solid #aaa; border-radius:16px; font-size:13px; width:220px;
 }
 

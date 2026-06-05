@@ -85,9 +85,14 @@
         </div>
     </div>
 
-    <div class="project-skills">
+    <div class="project-skills skills-block">
         <h3>Необходимые навыки</h3>
-        <div id="skills-container" class="skills-container" data-project-id="{{ project.id }}">
+        <div id="skills-container"
+             class="skills-container"
+             data-search-url="/projects/skills/"
+             data-add-url="/projects/{{ project.id }}/skills/add/"
+             data-remove-url="/projects/{{ project.id }}/skills/__skill_id__/remove/"
+             data-empty-text="Навыки не указаны">
             {% for skill in project.skills.all %}
                 <span class="skill-chip" data-id="{{ skill.id }}">
                     {{ skill.name }}
@@ -104,7 +109,7 @@
             {% endif %}
         </div>
         <div id="skill-input-wrapper" class="skill-input-wrapper hidden">
-            <input type="text" id="skill-input" placeholder="Введите навык..." autocomplete="off"/>
+            <input type="text" id="skill-input" class="skill-input" placeholder="Введите навык..." autocomplete="off"/>
             <ul id="skill-suggestions" class="skill-suggestions hidden"></ul>
         </div>
     </div>

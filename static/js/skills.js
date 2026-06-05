@@ -1,170 +1,170 @@
-// Profile skills UI logic
 (function(){
   document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("skills-container");
-    if (!container) return;
+    document.querySelectorAll(".skills-container[data-add-url]").forEach(initSkills);
 
-    const projectId = container.dataset.projectId;
-    const userId = container.dataset.userId;
+    function initSkills(container) {
+      const block = container.closest(".skills-block") || container.parentElement;
+      const skillsUrl = container.dataset.searchUrl;
+      const addUrl = container.dataset.addUrl;
+      const removeUrl = (skillId) => container.dataset.removeUrl.replace("__skill_id__", skillId);
 
-    let skillsUrl, addUrl, removeUrl;
-    if (userId) {
-      skillsUrl = `/users/skills/`;
-      addUrl = `/users/${userId}/skills/add/`;
-      removeUrl = (skillId) => `/users/${userId}/skills/${skillId}/remove/`;
-    } else {
-      skillsUrl = `/projects/skills/`;
-      addUrl = `/projects/${projectId}/skills/add/`;
-      removeUrl = (skillId) => `/projects/${projectId}/skills/${skillId}/remove/`;
-    }
+      const addBtn = block.querySelector(".add-skill-btn");
+      const inputWrapper = block.querySelector(".skill-input-wrapper");
+      const input = block.querySelector(".skill-input");
+      const suggestions = block.querySelector(".skill-suggestions");
 
-    const addBtn = document.getElementById("add-skill-btn");
-    const inputWrapper = document.getElementById("skill-input-wrapper");
-    const input = document.getElementById("skill-input");
-    const suggestions = document.getElementById("skill-suggestions");
+      if (!addBtn || !inputWrapper || !input || !suggestions) return;
 
-    if (!addBtn || !inputWrapper || !input || !suggestions) return;
-
-    addBtn.addEventListener("click", () => {
-      addBtn.classList.add("hidden");
-      inputWrapper.classList.remove("hidden");
-      input.value = "";
-      suggestions.innerHTML = "";
-      suggestions.classList.add("hidden");
-      input.focus();
-    });
-
-    let t = null;
-    input.addEventListener("input", () => {
-      const q = input.value.trim();
-      clearTimeout(t);
-      if (!q) {
+      addBtn.addEventListener("click", () => {
+        addBtn.classList.add("hidden");
+        inputWrapper.classList.remove("hidden");
+        input.value = "";
+        suggestions.innerHTML = "";
         suggestions.classList.add("hidden");
-        suggestions.innerHTML = "";
-        return;
-      }
-      t = setTimeout(async () => {
-        const res = await fetch(`${skillsUrl}?q=${encodeURIComponent(q)}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        input.focus();
+      });
 
-        suggestions.innerHTML = "";
-        data.forEach(s => {
-          const li = document.createElement("li");
-          li.textContent = s.name;
-          li.dataset.id = s.id;
-          li.className = "suggestion-item";
-          suggestions.appendChild(li);
-        });
-
-        const exact = data.some(s => s.name.toLowerCase() === q.toLowerCase());
-        if (!exact) {
-          const liNew = document.createElement("li");
-          liNew.textContent = `Создать «${q}»`;
-          liNew.dataset.name = q;
-          liNew.className = "create-new";
-          suggestions.appendChild(liNew);
-        }
-
-        suggestions.classList.remove("hidden");
-      }, 200);
-    });
-
-    suggestions.addEventListener("mousedown", async (e) => {
-      const li = e.target.closest("li");
-      if (!li) return;
-
-      if (li.classList.contains("create-new")) {
-        await addSkillByName(li.dataset.name);
-      } else if (li.dataset.id) {
-        await addSkillById(li.dataset.id);
-      }
-      hideInput();
-    });
-
-    input.addEventListener("keydown", async (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
+      let timer = null;
+      input.addEventListener("input", () => {
         const q = input.value.trim();
-        if (!q) return;
+        clearTimeout(timer);
+        if (!q) {
+          suggestions.classList.add("hidden");
+          suggestions.innerHTML = "";
+          return;
+        }
+        timer = setTimeout(async () => {
+          const res = await fetch(`${skillsUrl}?q=${encodeURIComponent(q)}`);
+          if (!res.ok) return;
+          const data = await res.json();
 
-        const first = suggestions.querySelector("li");
-        if (first && first.dataset.id) {
-          await addSkillById(first.dataset.id);
-        } else {
-          await addSkillByName(q);
+          suggestions.innerHTML = "";
+          data.forEach(skill => {
+            const li = document.createElement("li");
+            li.textContent = skill.name;
+            li.dataset.id = skill.id;
+            li.className = "suggestion-item";
+            suggestions.appendChild(li);
+          });
+
+          const exact = data.some(skill => skill.name.toLowerCase() === q.toLowerCase());
+          if (!exact) {
+            const liNew = document.createElement("li");
+            liNew.textContent = `Создать «${q}»`;
+            liNew.dataset.name = q;
+            liNew.className = "create-new";
+            suggestions.appendChild(liNew);
+          }
+
+          suggestions.classList.remove("hidden");
+        }, 200);
+      });
+
+      suggestions.addEventListener("mousedown", async (e) => {
+        const li = e.target.closest("li");
+        if (!li) return;
+
+        if (li.classList.contains("create-new")) {
+          await addSkillByName(li.dataset.name);
+        } else if (li.dataset.id) {
+          await addSkillById(li.dataset.id);
         }
         hideInput();
-      }
-      if (e.key === "Escape") {
-        hideInput();
-      }
-    });
+      });
 
-    input.addEventListener("blur", () => setTimeout(hideInput, 120));
+      input.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const q = input.value.trim();
+          if (!q) return;
 
-    function hideInput() {
-      inputWrapper.classList.add("hidden");
-      suggestions.classList.add("hidden");
-      addBtn.classList.remove("hidden");
-    }
+          const first = suggestions.querySelector("li");
+          if (first && first.dataset.id) {
+            await addSkillById(first.dataset.id);
+          } else {
+            await addSkillByName(q);
+          }
+          hideInput();
+        }
+        if (e.key === "Escape") {
+          hideInput();
+        }
+      });
 
-    container.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("remove-skill-btn")) {
-        const chip = e.target.closest(".skill-chip");
-        const skillId = chip.dataset.id;
-        const res = await fetch(removeUrl(skillId), {
+      input.addEventListener("blur", () => setTimeout(hideInput, 120));
+
+      container.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("remove-skill-btn")) {
+          const chip = e.target.closest(".skill-chip");
+          const skillId = chip.dataset.id;
+          const res = await fetch(removeUrl(skillId), {
+            method: "POST",
+            headers: { "X-CSRFToken": getCookie("csrftoken") }
+          });
+          if (res.ok) {
+            chip.remove();
+            showEmptyIfNeeded();
+          }
+        }
+      });
+
+      async function addSkillById(skillId) {
+        const res = await fetch(addUrl, {
           method: "POST",
-          headers: { "X-CSRFToken": getCookie("csrftoken") }
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ skill_id: skillId }),
         });
         if (res.ok) {
-          chip.remove();
+          const skill = await res.json();
+          appendChip(skill.id, skill.name);
         }
       }
-    });
 
-    async function addSkillById(skillId) {
-      const res = await fetch(addUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: JSON.stringify({ skill_id: skillId }),
-      });
-      if (res.ok) {
-        const skill = await res.json();
-        appendChip(skill.id, skill.name);
+      async function addSkillByName(name) {
+        const res = await fetch(addUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ name }),
+        });
+        if (res.ok) {
+          const skill = await res.json();
+          appendChip(skill.id, skill.name);
+        }
       }
-    }
 
-    async function addSkillByName(name) {
-      const res = await fetch(addUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: JSON.stringify({ name }),
-      });
-      if (res.ok) {
-        const skill = await res.json();
-        appendChip(skill.id, skill.name);
+      function appendChip(id, name) {
+        if (container.querySelector(`.skill-chip[data-id="${id}"]`)) return;
+
+        const chip = document.createElement("span");
+        chip.className = "skill-chip";
+        chip.dataset.id = id;
+        chip.innerHTML = `${name} <button type="button" class="remove-skill-btn" aria-label="Удалить" title="Удалить">×</button>`;
+
+        container.insertBefore(chip, addBtn);
+
+        const empty = container.querySelector(".skill-empty");
+        if (empty) empty.remove();
       }
-    }
 
-    function appendChip(id, name) {
-      if (container.querySelector(`.skill-chip[data-id="${id}"]`)) return;
+      function hideInput() {
+        inputWrapper.classList.add("hidden");
+        suggestions.classList.add("hidden");
+        addBtn.classList.remove("hidden");
+      }
 
-      const chip = document.createElement("span");
-      chip.className = "skill-chip";
-      chip.dataset.id = id;
-      chip.innerHTML = `${name} <button type="button" class="remove-skill-btn" aria-label="Удалить" title="Удалить">×</button>`;
-
-      container.insertBefore(chip, addBtn);
-
-      const empty = container.querySelector(".skill-empty");
-      if (empty) empty.remove();
+      function showEmptyIfNeeded() {
+        if (container.querySelector(".skill-chip") || container.querySelector(".skill-empty")) return;
+        const empty = document.createElement("span");
+        empty.className = "skill-empty";
+        empty.textContent = container.dataset.emptyText || "Навыки не указаны";
+        container.insertBefore(empty, addBtn);
+      }
     }
 
     function getCookie(name) {
