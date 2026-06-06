@@ -13,7 +13,7 @@
 <div class="project-container">
     <div class="project-card">
         <div class="project-card-header">
-            <a href="/users/{{ project.owner.id }}">
+            <a href="{% url 'users:detail' project.owner.id %}">
                 <div class="project-card-header-left">
                     {% if project.owner.avatar %}
                         <img src="{{ project.owner.avatar.url }}" alt="Аватар автора" class="project-author-avatar">
@@ -53,16 +53,18 @@
         <div class="project-actions">
             <a href="#"
                class="black-button black-button-share share-button"
-               data-url="/projects/{{ project.id }}">
+               data-url="{% url 'projects:detail' project.id %}">
                 {% include 'includes/svg/share.html' %}
             </a>
             {% if user.id == project.owner.id %}
-                <a href="/projects/{{ project.id }}/edit" class="black-button">
+                <a href="{% url 'projects:edit' project.id %}" class="black-button">
                     {% include 'includes/svg/pen.html' %}
                     Редактировать
                 </a>
                 {% if project.status == "open" %}
-                    <button class="black-button" id="complete-project-btn" data-id="{{ project.id }}">
+                    <button class="black-button"
+                            id="complete-project-btn"
+                            data-complete-url="{% url 'projects:complete' project.id %}">
                         Завершить проект
                     </button>
                 {% endif %}
@@ -70,6 +72,8 @@
                 {% if user.is_authenticated %}
                     <button id="participate-btn" class="black-button"
                             data-project="{{ project.id }}"
+                            data-participate-url="{% url 'projects:toggle_participate' project.id %}"
+                            data-user-profile-url="{% url 'users:detail' request.user.id %}"
                             data-user-id="{{ request.user.id }}"
                             data-user-name="{{ request.user.name }} {{ request.user.surname }}"
                             data-user-avatar="{% if request.user.avatar %}{{ request.user.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
@@ -89,9 +93,9 @@
         <h3>Необходимые навыки</h3>
         <div id="skills-container"
              class="skills-container"
-             data-search-url="/projects/skills/"
-             data-add-url="/projects/{{ project.id }}/skills/add/"
-             data-remove-url="/projects/{{ project.id }}/skills/__skill_id__/remove/"
+             data-search-url="{% url 'projects:skill_search' %}"
+             data-add-url="{% url 'projects:skill_add' project.id %}"
+             data-remove-url="{% url 'projects:skill_remove' project.id 0 %}"
              data-empty-text="Навыки не указаны">
             {% for skill in project.skills.all %}
                 <span class="skill-chip" data-id="{{ skill.id }}">
@@ -118,7 +122,7 @@
     <h3>Участники проекта (<span id="participants-count" style="display:inline">{{ project.participants.all|length }}</span>)</h3>
     <div id="participants-list" class="participants-list">
         {% for member in project.participants.all %}
-        <a href="/users/{{ member.id }}" id="participant-{{ member.id }}">
+        <a href="{% url 'users:detail' member.id %}" id="participant-{{ member.id }}">
             <div class="participant-item">
                 {% if member.avatar %}
                     <img src="{{ member.avatar.url }}" alt="Аватар" class="participant-avatar">

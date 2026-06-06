@@ -9,13 +9,13 @@ class CustomUserAdmin(UserAdmin):
     model = User
     list_display = ("email", "name", "surname", "is_staff", "is_active")
     list_filter = ("is_staff", "is_active")
-    ordering = ("id",)
+    ordering = ("name", "surname")
     search_fields = ("email", "name", "surname")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (
             "Профиль",
-            {"fields": ("name", "surname", "avatar", "about", "phone", "github_url")},
+            {"fields": ("name", "surname", "avatar", "about", "phone", "github_url", "skills")},
         ),
         (
             "Права",
@@ -23,6 +23,7 @@ class CustomUserAdmin(UserAdmin):
         ),
         ("Даты", {"fields": ("last_login", "date_joined")}),
     )
+    filter_horizontal = ("groups", "user_permissions", "skills")
     add_fieldsets = (
         (None, {
             "classes": ("wide",),

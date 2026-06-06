@@ -59,9 +59,9 @@
         <div class="profile-skills skills-block">
             <h3>Навыки</h3>
             <div class="skills-container"
-                 data-search-url="/users/skills/"
-                 data-add-url="/users/{{ user.id }}/skills/add/"
-                 data-remove-url="/users/{{ user.id }}/skills/__skill_id__/remove/"
+                 data-search-url="{% url 'users:skill_search' %}"
+                 data-add-url="{% url 'users:skill_add' user.id %}"
+                 data-remove-url="{% url 'users:skill_remove' user.id 0 %}"
                  data-empty-text="Навыки не указаны">
                 {% for skill in user.skills.all %}
                     <span class="skill-chip" data-id="{{ skill.id }}">
@@ -90,7 +90,7 @@
         {% endif %}
 
         <div class="form-actions">
-            <a href="/users/{{ user.id }}" class="cancel-button">Отмена</a>
+            <a href="{% url 'users:detail' user.id %}" class="cancel-button">Отмена</a>
             <button type="submit" class="save-button">Сохранить</button>
         </div>
     </form>

@@ -110,3 +110,9 @@ python manage.py runserver
 На странице проекта владелец может добавлять и удалять необходимые навыки без перезагрузки страницы. Поиск навыков работает через `/projects/skills/?q=<строка>`, добавление - через `/projects/<id>/skills/add/`, удаление - через `/projects/<id>/skills/<skill_id>/remove/`.
 
 На странице `/projects/list/` доступен фильтр по навыкам. Активный фильтр передается через query-параметр `skill`.
+
+## Автор
+
+Болдырев Максим Дмитриевич
+
+GitHub: [https://github.com/qw2k2](https://github.com/qw2k2)

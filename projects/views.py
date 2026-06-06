@@ -1,11 +1,10 @@
-import json
-
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
+from team_finder.constants import OBJECTS_ON_PAGE
+from team_finder.services import get_skill_suggestions, paginate, request_data
 from .forms import ProjectForm
 from .models import Project, Skill
 
@@ -18,8 +17,7 @@ def project_list(request):
         projects = projects.filter(skills__name=active_skill)
 
     projects = projects.order_by("-created_at").distinct()
-    paginator = Paginator(projects, 12)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_obj = paginate(request, projects, OBJECTS_ON_PAGE)
     query_prefix = f"skill={active_skill}&" if active_skill else ""
 
     return render(request, "projects/project_list.html", {
@@ -41,16 +39,16 @@ def project_detail(request, pk):
 
 @login_required
 def project_create(request):
-    if request.method == "POST":
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.owner = request.user
-            project.save()
-            project.participants.add(request.user)
-            return redirect(f"/projects/{project.id}/")
-    else:
-        form = ProjectForm(initial={"status": Project.STATUS_OPEN})
+    form = ProjectForm(
+        request.POST or None,
+        initial={"status": Project.STATUS_OPEN},
+    )
+    if form.is_valid():
+        project = form.save(commit=False)
+        project.owner = request.user
+        project.save()
+        project.participants.add(request.user)
+        return redirect(project)
 
     return render(request, "projects/create-project.html", {"form": form, "is_edit": False})
 
@@ -61,13 +59,10 @@ def project_edit(request, pk):
     if request.user != project.owner and not request.user.is_staff:
         return HttpResponseForbidden("Нет прав на редактирование проекта")
 
-    if request.method == "POST":
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-            return redirect(f"/projects/{project.id}/")
-    else:
-        form = ProjectForm(instance=project)
+    form = ProjectForm(request.POST or None, instance=project)
+    if form.is_valid():
+        form.save()
+        return redirect(project)
 
     return render(request, "projects/create-project.html", {"form": form, "is_edit": True})
 
@@ -93,24 +88,19 @@ def toggle_participate(request, pk):
     if request.user == project.owner:
         return HttpResponseBadRequest("Автор уже участвует в проекте")
 
-    if project.participants.filter(pk=request.user.pk).exists():
+    participant = project.participants.filter(pk=request.user.pk).exists()
+    if participant:
         project.participants.remove(request.user)
-        participant = False
     else:
         project.participants.add(request.user)
-        participant = True
 
-    return JsonResponse({"status": "ok", "participant": participant})
+    return JsonResponse({"status": "ok", "participant": not participant})
 
 
 @require_GET
 def skill_search(request):
     q = request.GET.get("q", "").strip()
-    skills = (
-        Skill.objects.filter(name__istartswith=q).order_by("name")[:10]
-        if q
-        else Skill.objects.none()
-    )
+    skills = get_skill_suggestions(q)
     return JsonResponse(list(skills.values("id", "name")), safe=False)
 
 
@@ -121,7 +111,7 @@ def project_skill_add(request, pk):
     if request.user != project.owner:
         return HttpResponseForbidden("Нет прав на изменение навыков")
 
-    data = _request_data(request)
+    data = request_data(request)
     skill_id = data.get("skill_id")
     name = str(data.get("name", "")).strip()
 
@@ -158,12 +148,3 @@ def project_skill_remove(request, pk, skill_id):
 
     project.skills.remove(skill)
     return JsonResponse({"status": "ok"})
-
-
-def _request_data(request):
-    if request.content_type == "application/json":
-        try:
-            return json.loads(request.body.decode("utf-8") or "{}")
-        except json.JSONDecodeError:
-            return {}
-    return request.POST

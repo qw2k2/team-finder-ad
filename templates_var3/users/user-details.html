@@ -42,15 +42,15 @@
         <div class="profile-actions">
             <a href="#"
                class="black-button black-button-share share-button"
-               data-url="/users/{{ user.id }}">
+               data-url="{% url 'users:detail' user.id %}">
                 {% include 'includes/svg/share.html' %}
             </a>
             {% if request.user.id == user.id %}
-            <a href="/users/edit-profile/" class="black-button">
+            <a href="{% url 'users:edit_profile' %}" class="black-button">
                 {% include 'includes/svg/pen.html' %}
                 Редактировать
             </a>
-            <a href="/projects/create-project/" class="black-button">
+            <a href="{% url 'projects:create' %}" class="black-button">
                 {% include 'includes/svg/plus.html' %}
                 Добавить проект
             </a>
@@ -61,9 +61,9 @@
     <div class="profile-skills skills-block">
         <h3>Навыки</h3>
         <div class="skills-container"
-             data-search-url="/users/skills/"
-             data-add-url="/users/{{ user.id }}/skills/add/"
-             data-remove-url="/users/{{ user.id }}/skills/__skill_id__/remove/"
+             data-search-url="{% url 'users:skill_search' %}"
+             data-add-url="{% url 'users:skill_add' user.id %}"
+             data-remove-url="{% url 'users:skill_remove' user.id 0 %}"
              data-empty-text="Навыки не указаны">
             {% for skill in user.skills.all %}
                 <span class="skill-chip" data-id="{{ skill.id }}">
@@ -92,7 +92,7 @@
         {% for project in user.owned_projects.all %}
         <div class="collapsed-project-card">
             <div class="collapsed-project-card-header">
-                <h4><a href="/projects/{{ project.id }}/">{{ project.name }}</a></h4>
+                <h4><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></h4>
                 <span class="project-status-black">
                     {% if project.status == "open" %}
                         Открыт

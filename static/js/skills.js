@@ -6,7 +6,7 @@
       const block = container.closest(".skills-block") || container.parentElement;
       const skillsUrl = container.dataset.searchUrl;
       const addUrl = container.dataset.addUrl;
-      const removeUrl = (skillId) => container.dataset.removeUrl.replace("__skill_id__", skillId);
+      const removeUrl = (skillId) => container.dataset.removeUrl.replace("/0/remove/", `/${skillId}/remove/`);
 
       const addBtn = block.querySelector(".add-skill-btn");
       const inputWrapper = block.querySelector(".skill-input-wrapper");

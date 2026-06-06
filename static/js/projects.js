@@ -4,10 +4,10 @@
     if (completeBtn) {
       completeBtn.addEventListener("click", function(e) {
         e.preventDefault();
-        const projectId = completeBtn.dataset.id;
-        if (!projectId) return;
+        const completeUrl = completeBtn.dataset.completeUrl;
+        if (!completeUrl) return;
 
-        fetch(`/projects/${projectId}/complete/`, {
+        fetch(completeUrl, {
           method: "POST",
           headers: {
             "X-CSRFToken": window.getCookie ? window.getCookie("csrftoken") : "",
@@ -39,15 +39,16 @@
     const participantsCount = document.getElementById("participants-count");
     if (participateBtn && participantsList && participantsCount) {
       const userId = participateBtn.dataset.userId || null;
-      const projectId = participateBtn.dataset.project;
+      const participateUrl = participateBtn.dataset.participateUrl;
+      const userProfileUrl = participateBtn.dataset.userProfileUrl;
       const userName = participateBtn.dataset.userName || "";
       const userAvatar = participateBtn.dataset.userAvatar || "";
 
       participateBtn.addEventListener("click", function(e) {
         e.preventDefault();
-        if (!projectId) return;
+        if (!participateUrl) return;
 
-        fetch(`/projects/${projectId}/toggle-participate/`, {
+        fetch(participateUrl, {
           method: "POST",
           headers: {
             "X-CSRFToken": window.getCookie ? window.getCookie("csrftoken") : "",
@@ -70,7 +71,7 @@
             if (noParticipants) noParticipants.remove();
 
             const a = document.createElement("a");
-            a.href = `/users/${userId}`;
+            a.href = userProfileUrl || "#";
             a.id = `participant-${userId}`;
             a.innerHTML = `
               <div class="participant-item">
