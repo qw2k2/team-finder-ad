@@ -1,118 +1,162 @@
 # TeamFinder
 
-TeamFinder - Django-приложение для поиска участников в pet-проекты. В проекте реализованы регистрация и вход по email, профили пользователей, навыки пользователей, создание и редактирование проектов, участие в проектах, завершение проектов, список участников платформы и вариант 3 задания: необходимые навыки проектов с фильтрацией проектов по навыкам.
+TeamFinder is a Django web application for finding collaborators for pet projects. Users can create profiles, describe their skills, publish projects, and discover projects that need their expertise.
 
-## Технологии
+The current implementation uses **project skill requirements and skill-based project filtering** (variant 3).
+
+## Features
+
+- User registration, authentication, and profile management
+- User profiles with searchable skills
+- Create, edit, and complete projects
+- Join and leave projects
+- Browse platform members
+- Define required skills for each project
+- Search and filter projects by required skills
+- Add and remove project skills without a full page reload
+- PostgreSQL-backed persistence
+- Demo data generation with a Django management command
+
+## Tech stack
 
 - Python 3.11+
 - Django 5.2
-- PostgreSQL
+- PostgreSQL 16
+- psycopg 3
 - Pillow
-- psycopg
 - python-decouple
+- Docker Compose
 
-## Быстрый запуск
+## Getting started
 
-1. Создайте и активируйте виртуальное окружение:
+### Prerequisites
+
+- Python 3.11 or newer
+- pip
+- Docker and Docker Compose
+- Git
+
+### 1. Clone the repository
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+git clone https://github.com/qw2k2/team-finder-ad.git
+cd team-finder-ad
 ```
 
-2. Установите зависимости:
+### 2. Create a virtual environment
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Linux / macOS:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Создайте файл `.env` по примеру `.env_example`. Для выбранного варианта должно быть указано:
+### 4. Configure environment variables
 
-```env
-TASK_VERSION=3
+Create a local `.env` file by copying `.env_example`:
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env_example .env
 ```
 
-4. Запустите PostgreSQL:
+Linux / macOS:
+
+```bash
+cp .env_example .env
+```
+
+Set `TASK_VERSION=3` in `.env`. Replace the example secret key and database password with local values before using the application. Do not commit your real `.env` file.
+
+### 5. Start PostgreSQL
 
 ```bash
 docker compose up -d
 ```
 
-5. Примените миграции:
+### 6. Apply migrations and load demo data
 
 ```bash
 python manage.py migrate
-```
-
-6. Создайте демонстрационные данные:
-
-```bash
 python manage.py seed_data
 ```
 
-7. Запустите сервер:
+### 7. Start the development server
 
 ```bash
 python manage.py runserver
 ```
 
-Приложение будет доступно по адресу http://127.0.0.1:8000/.
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 
-## Тестовые аккаунты
+## Main routes
 
-После выполнения `python manage.py seed_data` доступны аккаунты:
+| Route | Description |
+| --- | --- |
+| `/projects/list/` | Browse projects and filter by required skills |
+| `/projects/create-project/` | Create a project |
+| `/projects/<id>/` | View project details |
+| `/users/list/` | Browse platform members |
+| `/users/<id>/` | View a user profile |
+| `/users/skills/` | Search skills for a profile |
+| `/users/register/` | Register an account |
+| `/users/login/` | Sign in |
+| `/users/change-password/` | Change password |
 
-- `maria@yandex.ru` / `password`
-- `alex@example.com` / `password`
-- `dmitry@example.com` / `password`
-- `olga@example.com` / `password`
-- `admin@example.com` / `admin`
+## Project skill workflow
 
-## Проверка проекта
+Project owners can manage the skills required for their projects. Skill suggestions are searched through:
 
-Запуск автоматических тестов:
+```text
+/projects/skills/?q=<query>
+```
+
+The project skill endpoints are:
+
+- `POST /projects/<id>/skills/add/` — add a required skill
+- `POST /projects/<id>/skills/<skill_id>/remove/` — remove a required skill
+
+The project list supports filtering with the `skill` query parameter.
+
+## Useful development commands
+
+Run automated tests:
 
 ```bash
 python manage.py test
 ```
 
-Проверка Django:
+Run Django's system checks:
 
 ```bash
 python manage.py check
 ```
 
-Для локальной проверки без PostgreSQL можно временно использовать SQLite:
+Stop the database container:
 
 ```bash
-$env:USE_SQLITE="True"
-python manage.py migrate
-python manage.py seed_data
-python manage.py runserver
+docker compose down
 ```
 
-Основные страницы:
+## Configuration and security
 
-- `/projects/list/` - список проектов и фильтр по необходимым навыкам
-- `/projects/create-project/` - создание проекта
-- `/projects/<id>/` - страница проекта
-- `/users/list/` - список участников
-- `/users/<id>/` - профиль пользователя
-- `/users/skills/` - поиск навыков для профиля
-- `/users/register/` - регистрация
-- `/users/login/` - вход
-- `/users/change-password/` - смена пароля
+The repository includes `.env_example` with development defaults. Use a unique `DJANGO_SECRET_KEY`, disable debug mode, configure allowed hosts, and set strong database credentials before deploying anywhere beyond local development.
 
-## Реализованный вариант
+## Project status
 
-В проекте выбран вариант 3: "Необходимые навыки" проектов и фильтрация проектов по навыкам.
-
-На странице проекта владелец может добавлять и удалять необходимые навыки без перезагрузки страницы. Поиск навыков работает через `/projects/skills/?q=<строка>`, добавление - через `/projects/<id>/skills/add/`, удаление - через `/projects/<id>/skills/<skill_id>/remove/`.
-
-На странице `/projects/list/` доступен фильтр по навыкам. Активный фильтр передается через query-параметр `skill`.
-
-## Автор
-
-Болдырев Максим Дмитриевич
-
-GitHub: [https://github.com/qw2k2](https://github.com/qw2k2)
+TeamFinder is an educational full-stack Django project. It demonstrates user and project workflows, relational data modelling, skill-based discovery, and local containerized database setup.
