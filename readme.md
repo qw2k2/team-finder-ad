@@ -81,7 +81,7 @@ Linux / macOS:
 cp .env_example .env
 ```
 
-Set `TASK_VERSION=3` in `.env`. Replace the example secret key and database password with local values before using the application. Do not commit your real `.env` file.
+Set `TASK_VERSION=3` in `.env`. Replace the example `DJANGO_SECRET_KEY` and database password with local values before starting the application. The application requires `DJANGO_SECRET_KEY` to be set. Do not commit your real `.env` file.
 
 ### 5. Start PostgreSQL
 
